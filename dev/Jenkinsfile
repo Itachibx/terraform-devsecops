@@ -1,0 +1,35 @@
+pipeline {
+    agent any
+
+    environment {
+        TF_IN_AUTOMATION = 'true'
+        GOOGLE_APPLICATION_CREDENTIALS = credentials('gcp-sa-key')
+    }
+
+    stages {
+        stage('Terraform Init') {
+            steps {
+                sh 'terraform init'
+            }
+        }
+
+        stage('Checkov') {
+            steps {
+                sh 'checkov -d .'
+            }
+        }
+
+        stage('Plan') {
+            steps {
+                sh 'terraform plan -var="project_id=superb-garden-461103"'
+            }
+        }
+
+        stage('Apply') {
+            steps {
+                input message: 'Approve to apply changes?'
+                sh 'terraform apply -auto-approve -var="superb-garden-461103"'
+            }
+        }
+    }
+}
